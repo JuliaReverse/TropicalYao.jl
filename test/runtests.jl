@@ -1,8 +1,8 @@
 using TropicalYao
 using Test
 
-@testset "blocks" begin
-    include("blocks.jl")
+@testset "spinglass_gates" begin
+    include("spinglass_gates.jl")
 end
 
 @testset "instructions" begin

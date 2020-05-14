@@ -1,6 +1,14 @@
 using TropicalYao
 using Test
 
-@testset "TropicalYao.jl" begin
-    # Write your own tests here.
+@testset "blocks" begin
+    include("blocks.jl")
+end
+
+@testset "instructions" begin
+    include("instructs.jl")
+end
+
+@testset "tropicalgate" begin
+    include("tropicalgate.jl")
 end

@@ -37,7 +37,7 @@ end
         end
         ixs ← ([(ix...,) for ix in split("aα,aβ,aγ,aδ,bα,bβ,bγ,bδ,cα,cβ,cγ,cδ,dα,dβ,dγ,dδ", ',')]...,)
         iy ← ("abcdαβγδ"...,)
-        NiLog.einsum!(ixs, xs, iy, y)
+        NiLogLikeNumbers.einsum!(ixs, xs, iy, y)
     end
     for i=1:length(out!)
         out![i] *= identity(y[i])
@@ -48,3 +48,33 @@ end
 spinglass_bond_tensor(Jij::T) where T<:Real = spinglass_bond_tensor!(ones(Tropical{T}, 2, 2), Jij)[1]
 spinglass_g4_tensor(Jij::T) where T<:Real = spinglass_g4_tensor!(Diagonal(ones(Tropical{T}, 4)), Jij)[1]
 spinglass_g16_tensor(Js::Vector{T}) where T<:Real = spinglass_g16_tensor!(ones(Tropical{T}, 16, 16), Js)[1]
+
+@i function apply_G2!(reg::ArrayReg{1,T}, i::Int, J::Real, REG_STACK) where T<:Tropical
+    @routine @invcheckoff begin
+        nbit ← nqubits(reg)
+        blk ← put(nbit, i=>tropicalblock(MMatrix{2,2}(ones(T, 2, 2))))
+        spinglass_bond_tensor!(blk.content.mat, J)
+    end
+    apply!(reg, blk, REG_STACK)
+    ~@routine
+end
+
+@i function apply_G4!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, J::Real, REG_STACK) where T<:Tropical
+    @routine @invcheckoff begin
+        nbit ← nqubits(reg)
+        blk ← put(nbit, i=>tropicalblock(Diagonal(MVector{4}(ones(T, 4)))))
+        spinglass_g4_tensor!(blk.content.mat, J)
+    end
+    apply!(reg, blk, REG_STACK)
+    ~@routine
+end
+
+@i function apply_G16!(reg::ArrayReg{1,T}, i::NTuple{4,Int}, Js::AbstractVector{<:Real}, REG_STACK) where T<:Tropical
+    @routine @invcheckoff begin
+        nbit ← nqubits(reg)
+        blk ← put(nbit, i=>tropicalblock(ones(T, 16, 16)))
+        spinglass_g16_tensor!(blk.content.mat, Js)
+    end
+    apply!(reg, blk, REG_STACK)
+    ~@routine
+end

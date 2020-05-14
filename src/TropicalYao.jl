@@ -2,11 +2,11 @@ module TropicalYao
 
 using Yao
 using NiLang
-using NiLog
+using NiLogLikeNumbers
 using LinearAlgebra: Diagonal
 
 include("instructs.jl")
 include("tropicalgate.jl")
-include("blocks.jl")
+include("spinglass_gates.jl")
 
 end # module

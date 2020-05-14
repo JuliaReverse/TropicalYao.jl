@@ -5,6 +5,15 @@ using StaticArrays
 
 export i_instruct!, VecStack, incstack!, stack4reg
 
+"""
+    VecStack{T}
+
+
+A vector stack, its data is initialized as an empty Matrix.
+It has a stack `top` that points to one column of the matrix.
+The `VecStack` then behaves likes a normal vector.
+One can use `incstack!` to increase the stack top.
+"""
 struct VecStack{T}
 	data::Matrix{T}
 	top::Int
@@ -13,15 +22,40 @@ end
 Base.getindex(x::VecStack, i::Int) = @inbounds x.data[i,x.top]
 Base.setindex!(x::VecStack, val, i::Int) = @inbounds setindex!(x.data, val, i, x.top)
 
+"""
+    stack4reg(reg, n)
+
+Build a `VecStack` of size (`n` × the register size).
+"""
 function stack4reg(reg::ArrayReg{1,T}, n::Int) where T<:Tropical
 	VecStack(ones(T, length(reg.state), n), 0)
 end
 
+"""
+    incstack!(vs::VecStack)
+
+Increase the stack size for 1.
+"""
 @i function incstack!(vs::VecStack)
 	@safe @assert size(vs.data, 2) > vs.top
 	INC(vs.top)
 end
 
+"""
+    i_instruct!(state, U0, locs, clocs, cvals, REG_STACK)
+
+Reversible instruction function.
+
+* `state`is a register with tropical numbers as elements.
+* `U0` is the gate matrix, also with tropical numbers as elements.
+* `locs` is the locations (tuple of ints) to apply gate `U0`.
+* `clocs` is the locations of control bits.
+* `cvals` is the values of control bits, should be a tuple of `0` and `1`.
+* `REG_STACK` is the stack for caching intermediate state. 
+    If U0 is dense, one-register-sized space is required,
+    if `U0` is diagonal, it can be empty due to the reversibility.
+    For stack constructor, see `stack4reg` for details.
+"""
 @i function i_instruct!(state::StridedVector{T},
         U0::AbstractMatrix{T},
         locs::NTuple{M, Int},

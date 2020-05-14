@@ -5,8 +5,9 @@ version = "0.1.0"
 
 [deps]
 BitBasis = "50ba71b6-fa0f-514d-ae9a-0916efc90dcf"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NiLang = "ab4ef3a6-0b42-11ea-31f6-e34652774712"
-NiLog = "07b9913f-4636-4bc8-9841-9af50769c5b0"
+NiLogLikeNumbers = "cde04368-e8ed-407b-9165-3f23f10e571c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 TropicalNumbers = "b3a74e9c-7526-4576-a4eb-79c0d4c32334"
 TupleTools = "9d95972d-f1c8-5527-a6e0-b4b365fa01f6"
@@ -15,6 +16,14 @@ YaoArrayRegister = "e600142f-9330-5003-8abb-0ebd767abc51"
 
 [compat]
 julia = "1.4"
+Yao="0.6"
+NiLang="0.3,0.4"
+NiLogLikeNumbers="0.1"
+StaticArrays="0.10,0.12"
+TropicalNumbers="0.1"
+TupleTools="1.0,1.2"
+YaoArrayRegister="0.6"
+BitBasis="0.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

@@ -2,6 +2,7 @@ using BitBasis
 using YaoArrayRegister: SDDiagonal, ArrayReg, staticize
 using TupleTools
 using StaticArrays
+using NiLang.AD: GVar
 
 export i_instruct!, VecStack, incstack!, stack4reg
 
@@ -51,7 +52,7 @@ Reversible instruction function.
 * `locs` is the locations (tuple of ints) to apply gate `U0`.
 * `clocs` is the locations of control bits.
 * `cvals` is the values of control bits, should be a tuple of `0` and `1`.
-* `REG_STACK` is the stack for caching intermediate state. 
+* `REG_STACK` is the stack for caching intermediate state.
     If U0 is dense, one-register-sized space is required,
     if `U0` is diagonal, it can be empty due to the reversibility.
     For stack constructor, see `stack4reg` for details.

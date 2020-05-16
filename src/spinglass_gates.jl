@@ -120,7 +120,7 @@ This instruct will increase the stack top of `REG_STACK` by 1.
 @i function apply_G16!(reg::ArrayReg{1,T}, i::NTuple{4,Int}, Js::AbstractVector{<:Real}, REG_STACK) where T<:Tropical
     @routine @invcheckoff begin
         nbit ← nqubits(reg)
-        blk ← put(nbit, i=>tropicalblock(ones(T, 16, 16)))
+        blk ← put(nbit, i=>tropicalblock(MMatrix{16,16}(ones(T, 16, 16))))
         spinglass_g16_tensor!(blk.content.mat, Js)
     end
     apply!(reg, blk, REG_STACK)

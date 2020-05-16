@@ -85,25 +85,31 @@ end
     end
 end
 
-@i function loop_kernel(state::StridedVector{T}, configs, U::AbstractMatrix, locs_raw, REG_STACK) where T<:Tropical
+@i function loop_kernel(state::StridedVector{T}, configs, U::MMatrix{NU,NU}, locs_raw, REG_STACK) where {T<:Tropical,NU}
     @invcheckoff begin
         branch_keeper ← zeros(Bool, size(U, 2))
+		scache ← MVector{NU}(ones(T, size(U, 1)))
 		incstack!(REG_STACK)
         @inbounds for i=1:length(configs)
-            x ← configs[i]
-
+			@routine begin
+            	x ← configs[i]
+				for l=1:length(locs_raw)
+					scache[l] *= identity(state[x + locs_raw[l]])
+				end
+			end
 			for l=1:size(U,1)
 				el ← zero(T)
 				@routine for k=1:size(U,2)
-					U[l,k] *= identity(state[x+locs_raw[k]])
-					if (el.n < U[l,k].n, branch_keeper[k])
+					scache[k] *= identity(U[l,k])
+					if (el.n < scache[k].n, branch_keeper[k])
 						FLIP(branch_keeper[k])
-						NiLang.SWAP(el, U[l,k])
+						NiLang.SWAP(el, scache[k])
 					end
 				end
 				REG_STACK[x+locs_raw[l]] *= identity(el)
 				~@routine
 			end
+			~@routine
         end
 		for i=1:length(state)
         	NiLang.SWAP(state[i], REG_STACK[i])

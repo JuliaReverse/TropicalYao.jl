@@ -1,5 +1,18 @@
-export spinglass_g4_tensor!, spinglass_bond_tensor!, spinglass_g16_tensor!
-export spinglass_g4_tensor, spinglass_bond_tensor, spinglass_g16_tensor
+export spinglass_mag_tensor!, spinglass_g4_tensor!, spinglass_bond_tensor!, spinglass_g16_tensor!
+export spinglass_mag_tensor, spinglass_g4_tensor, spinglass_bond_tensor, spinglass_g16_tensor
+
+"""
+    spinglass_mag_tensor!(v, Jij)
+
+`v` should be a length 2 vector.
+"""
+@i function spinglass_mag_tensor!(v::AbstractVector, h::Real)
+    @safe @assert size(v) == (2,)
+    Tropical(h)
+    v[1] *= identity(h)
+    v[2] /= identity(h)
+    (~Tropical)(h)
+end
 
 """
     spinglass_bond_tensor!(mat, Jij)
@@ -46,9 +59,16 @@ end
 end
 
 spinglass_bond_tensor(Jij::T) where T<:Real = spinglass_bond_tensor!(ones(Tropical{T}, 2, 2), Jij)[1]
+spinglass_mag_tensor(h::T) where T<:Real = spinglass_mag_tensor!(ones(Tropical{T}, 2), h)[1]
 spinglass_g4_tensor(Jij::T) where T<:Real = spinglass_g4_tensor!(Diagonal(ones(Tropical{T}, 4)), Jij)[1]
 spinglass_g16_tensor(Js::Vector{T}) where T<:Real = spinglass_g16_tensor!(ones(Tropical{T}, 16, 16), Js)[1]
 
+"""
+    apply_G2!(reg::ArrayReg, i::Int, J::Real, REG_STACK)
+
+Apply a spin glass bond tensor (parametrized by coupling `J`) on site `i`.
+This instruct will increase the stack top of `REG_STACK` by 1.
+"""
 @i function apply_G2!(reg::ArrayReg{1,T}, i::Int, J::Real, REG_STACK) where T<:Tropical
     @routine @invcheckoff begin
         nbit ← nqubits(reg)
@@ -59,6 +79,28 @@ spinglass_g16_tensor(Js::Vector{T}) where T<:Real = spinglass_g16_tensor!(ones(T
     ~@routine
 end
 
+"""
+    apply_Gh!(reg::ArrayReg, i::Int, h::Real, REG_STACK)
+
+Apply a spin glass magnetic tensor (parametrized by coupling `h`) on site `i`.
+This instruct will increase the stack top of `REG_STACK` by 0.
+"""
+@i function apply_Gh!(reg::ArrayReg{1,T}, i::Int, h::Real, REG_STACK) where T<:Tropical
+    @routine @invcheckoff begin
+        nbit ← nqubits(reg)
+        blk ← put(nbit, i=>tropicalblock(Diagonal(MVector{2}(ones(T, 2)))))
+        spinglass_mag_tensor!(blk.content.mat.diag, h)
+    end
+    apply!(reg, blk, REG_STACK)
+    ~@routine
+end
+
+"""
+    apply_G4!(reg::ArrayReg, i::NTuple{2,Int}, J::Real, REG_STACK)
+
+Apply a vertical spin glass bond tensor (parametrized by coupling `J`) on sites `i[1]` and `i[2]`.
+This instruct will increase the stack top of `REG_STACK` by 0.
+"""
 @i function apply_G4!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, J::Real, REG_STACK) where T<:Tropical
     @routine @invcheckoff begin
         nbit ← nqubits(reg)
@@ -69,6 +111,12 @@ end
     ~@routine
 end
 
+"""
+    apply_G16!(reg::ArrayReg, i::NTuple{4,Int}, Js::AbstractVector, REG_STACK)
+
+Apply a spin glass tensor of K(4,4) graph (the intra-block coupling term in the Chimera graph that parametrized by 16 coupling terms `Js`) on sites `i[1:4]`.
+This instruct will increase the stack top of `REG_STACK` by 1.
+"""
 @i function apply_G16!(reg::ArrayReg{1,T}, i::NTuple{4,Int}, Js::AbstractVector{<:Real}, REG_STACK) where T<:Tropical
     @routine @invcheckoff begin
         nbit ← nqubits(reg)

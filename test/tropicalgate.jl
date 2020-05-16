@@ -1,4 +1,4 @@
-using TropicalYao
+using TropicalYao, LinearAlgebra
 using Test, Random
 using Yao
 using NiLang
@@ -19,4 +19,8 @@ using NiLang
     reg2 = copy(reg) |> put(10, (4,1,2,9)=>matblock(spinglass_g16_tensor(Js)))
     @test reg1 ≈ reg2
     @test check_inv(apply_G16!, (copy(reg), (4,1,2,9), Js, S))
+    reg1, _, _, S = apply_Gh!(copy(reg), 2, 0.5, S)
+    reg2 = copy(reg) |> put(10, 2=>matblock(Diagonal(spinglass_mag_tensor(0.5))))
+    @test reg1 ≈ reg2
+    @test check_inv(apply_Gh!, (copy(reg), 2, 0.5, S))
 end

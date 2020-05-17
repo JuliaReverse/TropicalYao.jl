@@ -127,7 +127,7 @@ version = "0.6.0"
 
 [[NiLogLikeNumbers]]
 deps = ["LogarithmicNumbers", "NiLang", "TropicalNumbers", "TupleTools"]
-git-tree-sha1 = "f30529ca64c25419aff548b35420bbca6c9ac28d"
+git-tree-sha1 = "85107818d8299359f68ac6074c2cff777a0fa1ba"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaReverse/NiLogLikeNumbers.jl"
 uuid = "cde04368-e8ed-407b-9165-3f23f10e571c"

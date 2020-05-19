@@ -65,14 +65,16 @@ Reversible instruction function.
 		REG_STACK::VecStack{T}) where {T<:Tropical,C, M}
     @routine @invcheckoff begin
         nbit ← log2i(length(state))
-        U ← (all(TupleTools.diff(locs).>0) ? U0 : reorder(U0, collect(locs)|>sortperm))
+        if (!all(TupleTools.diff(locs).>0), ~)
+            @safe error("Sorry, `TropicalYao` only supports the location specification in increasing order. File an issue if you need it!")
+        end
         MM ← size(U0, 1)
         locked_bits ← [clocs..., locs...]
         locked_vals ← [cvals..., zeros(Int, M)...]
         locs_raw ← [i+1 for i in itercontrol(nbit, setdiff(1:nbit, locs), zeros(Int, nbit-M))] |> staticize
         configs ← itercontrol(nbit, locked_bits, locked_vals)
     end
-    loop_kernel(state, configs, U, locs_raw, REG_STACK)
+    loop_kernel(state, configs, U0, locs_raw, REG_STACK)
     ~@routine
 end
 

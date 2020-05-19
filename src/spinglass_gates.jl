@@ -59,11 +59,11 @@ end
     ~@routine
 end
 
-function copytensor(::Type{T}) where T<:Tropical
+function copytensor(::Type{T}) where T
     PermMatrix([1,4,3,2], [one(T), one(T), one(T), one(T)])
 end
 
-function resettensor(::Type{T}) where T<:Tropical
+function resettensor(::Type{T}) where T
     [one(T) one(T); zero(T) zero(T)]
 end
 

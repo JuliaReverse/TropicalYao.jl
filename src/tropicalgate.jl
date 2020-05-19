@@ -1,7 +1,7 @@
 using StaticArrays
 
 export tropicalblock, TropicalMatrixBlock
-export apply_G4!, apply_G2!, apply_G16!, apply_Gh!
+export apply_G4!, apply_G2!, apply_G16!, apply_Gh!, apply_Gcp!, apply_Greset!
 
 """
     TropicalMatrixBlock{N, MT} <: PrimitiveBlock{N}
@@ -44,5 +44,11 @@ Base.adjoint(x::TropicalMatrixBlock) = Daggered(x)
 
 @i function YaoBlocks.apply!(reg::ArrayReg{1}, pb::PutBlock{N,C,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
     i_instruct!(vec(reg.state), pb.content.mat, pb.locs, (), (), REG_STACK)
+end
+@i function YaoBlocks.apply!(reg::ArrayReg{1}, cb::ControlBlock{N,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
+    i_instruct!(vec(reg.state), cb.content.mat, cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
+end
+@i function YaoBlocks.apply!(reg::ArrayReg{1,<:Tropical}, cb::ControlBlock{N,<:XGate}, REG_STACK) where {N, C}
+    i_instruct!(vec(reg.state), Val(:X), cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
 end
 YaoBlocks.apply!(reg::ArrayReg{B}, b::TropicalMatrixBlock, REG_STACK) where B = throw(NotImplementedError(:apply!, typeof((reg, b))))

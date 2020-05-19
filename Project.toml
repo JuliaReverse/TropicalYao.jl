@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 BitBasis = "50ba71b6-fa0f-514d-ae9a-0916efc90dcf"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+LuxurySparse = "d05aeea4-b7d4-55ac-b691-9e7fabb07ba2"
 NiLang = "ab4ef3a6-0b42-11ea-31f6-e34652774712"
 NiLogLikeNumbers = "cde04368-e8ed-407b-9165-3f23f10e571c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

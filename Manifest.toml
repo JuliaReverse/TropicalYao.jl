@@ -83,9 +83,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LuxurySparse]]
 deps = ["FillArrays", "LinearAlgebra", "Random", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "f5beb9d83b3e2a3463d3176dcbfc2e156c7a4949"
+git-tree-sha1 = "da795394571b24ceb4ae7700428ff090d993363c"
 uuid = "d05aeea4-b7d4-55ac-b691-9e7fabb07ba2"
-version = "0.6.2"
+version = "0.6.3"
 
 [[MLStyle]]
 git-tree-sha1 = "67f9a88611bc79f992aa705d9bbc833a2547dec7"

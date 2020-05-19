@@ -76,6 +76,24 @@ Reversible instruction function.
     ~@routine
 end
 
+@i function i_instruct!(state::StridedVector{T},
+		val::Val{:X},
+        locs::NTuple{M, Int},
+        clocs::NTuple{C, Int},
+        cvals::NTuple{C, Int},
+		REG_STACK::VecStack{T}) where {T<:Tropical,C, M}
+	@routine @invcheckoff begin
+	    configs ← itercontrol(log2dim1(state), [clocs..., locs[1]], [cvals..., 0])
+	    mask ← bmask(locs...)
+	end
+	@invcheckoff for i=1:length(configs)
+		@invcheckoff b ← configs[i]
+        @inbounds NiLang.SWAP(state[b+1], state[flip(b, mask) + 1])
+		@invcheckoff b → configs[i]
+    end
+	~@routine
+end
+
 @i function loop_kernel(state::StridedVector{<:Tropical}, configs, U::SDDiagonal, locs_raw, REG_STACK)
     @invcheckoff @inbounds for i=1:length(configs)
         x ← configs[i]
@@ -85,10 +103,13 @@ end
     end
 end
 
-@i function loop_kernel(state::StridedVector{T}, configs, U::MMatrix{NU,NU}, locs_raw, REG_STACK) where {T<:Tropical,NU}
+_scache(u::MMatrix{N,N,T}) where {N,T} = MVector{N}(ones(T, N))
+_scache(u::AbstractMatrix{T}) where {T} = MVector{size(u,1)}(ones(T, size(u, 1)))
+
+@i function loop_kernel(state::StridedVector{T}, configs, U::AbstractMatrix, locs_raw, REG_STACK) where {T<:Tropical}
     @invcheckoff begin
         branch_keeper ← zeros(Bool, size(U, 2))
-		scache ← MVector{NU}(ones(T, size(U, 1)))
+		scache ← _scache(U)
 		incstack!(REG_STACK)
         @inbounds for i=1:length(configs)
 			@routine begin

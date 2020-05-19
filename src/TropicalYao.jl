@@ -4,6 +4,7 @@ using Yao
 using NiLang
 using NiLogLikeNumbers
 using LinearAlgebra: Diagonal
+using LuxurySparse
 
 export Tropical
 

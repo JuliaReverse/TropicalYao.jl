@@ -1,5 +1,6 @@
 export spinglass_mag_tensor!, spinglass_g4_tensor!, spinglass_bond_tensor!, spinglass_g16_tensor!
 export spinglass_mag_tensor, spinglass_g4_tensor, spinglass_bond_tensor, spinglass_g16_tensor
+export copytensor, resettensor
 
 """
     spinglass_mag_tensor!(v, Jij)
@@ -57,6 +58,29 @@ end
     end
     ~@routine
 end
+
+function copytensor(::Type{T}) where T<:Tropical
+    PermMatrix([1,4,3,2], [one(T), one(T), one(T), one(T)])
+end
+
+function resettensor(::Type{T}) where T<:Tropical
+    [one(T) one(T); zero(T) zero(T)]
+end
+
+"""
+    hypercubicI([T], ndim::Int, D::Int)
+
+Get a `ndim`-dimensional identity hypercubic, with bound dimension `D`.
+"""
+function hypercubicI(::Type{T}, ndim::Int, D::Int) where T
+    res = zeros(T, fill(D, ndim)...)
+    @inbounds for i=1:D
+        res[fill(i,ndim)...] = one(T)
+    end
+    return res
+end
+
+hypercubicI(ndim::Int, D::Int) = hypercubicI(Float64, ndim, D)
 
 spinglass_bond_tensor(Jij::T) where T<:Real = spinglass_bond_tensor!(ones(Tropical{T}, 2, 2), Jij)[1]
 spinglass_mag_tensor(h::T) where T<:Real = spinglass_mag_tensor!(ones(Tropical{T}, 2), h)[1]
@@ -124,5 +148,29 @@ This instruct will increase the stack top of `REG_STACK` by 1.
         spinglass_g16_tensor!(blk.content.mat, Js)
     end
     apply!(reg, blk, REG_STACK)
+    ~@routine
+end
+
+"""
+    apply_Gcp!(reg::ArrayReg, i::NTuple{2,Int}, REG_STACK)
+
+Apply a copy gate (or CNOT).
+This instruct will increase the stack top of `REG_STACK` by 0.
+"""
+@i function apply_Gcp!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, REG_STACK) where T<:Tropical
+    @routine @invcheckoff g ← control(nqubits(reg), i[1], i[2]=>X)
+    apply!(reg, g, REG_STACK)
+    ~@routine
+end
+
+"""
+    apply_Greset!(reg::ArrayReg, i::Int, REG_STACK)
+
+Apply a reset gate (or SUM).
+This instruct will increase the stack top of `REG_STACK` by 1.
+"""
+@i function apply_Greset!(reg::ArrayReg{1,T}, i::Int, REG_STACK) where T<:Tropical
+    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(MMatrix{2,2}(resettensor(T))))
+    apply!(reg, g, REG_STACK)
     ~@routine
 end

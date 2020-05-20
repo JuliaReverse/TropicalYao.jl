@@ -42,6 +42,10 @@ Increase the stack size for 1.
 	INC(vs.top)
 end
 
+@i @inline function unsafe_store!(neginf::Tropical{T}, x::Tropical{T}) where T
+    neginf *= identity(x)
+end
+
 """
     i_instruct!(state, U0, locs, clocs, cvals, REG_STACK)
 
@@ -129,7 +133,7 @@ _scache(u::AbstractMatrix{T}) where {T} = MVector{size(u,1)}(ones(T, size(u, 1))
 						NiLang.SWAP(el, scache[k])
 					end
 				end
-				REG_STACK[x+locs_raw[l]] *= identity(el)
+                unsafe_store!(REG_STACK[x+locs_raw[l]], el)
 				~@routine
 			end
 			~@routine

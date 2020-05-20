@@ -22,6 +22,7 @@ end
 
 Base.getindex(x::VecStack, i::Int) = @inbounds x.data[i,x.top]
 Base.setindex!(x::VecStack, val, i::Int) = @inbounds setindex!(x.data, val, i, x.top)
+Base.copy(vs::VecStack) = VecStack(copy(vs.data), vs.top)
 
 """
     stack4reg(reg, n)

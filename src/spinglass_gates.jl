@@ -60,7 +60,7 @@ end
 end
 
 function copytensor(::Type{T}) where T
-    PermMatrix([1,4,3,2], [one(T), one(T), one(T), one(T)])
+    Diagonal([one(T), T(-999999), T(-999999), one(T)])
 end
 
 function resettensor(::Type{T}) where T
@@ -155,10 +155,10 @@ end
     apply_Gcp!(reg::ArrayReg, i::NTuple{2,Int}, REG_STACK)
 
 Apply a copy gate (or CNOT).
-This instruct will increase the stack top of `REG_STACK` by 0.
+This instruct will increase the stack top of `REG_STACK` by 1.
 """
 @i function apply_Gcp!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, REG_STACK) where T<:Tropical
-    @routine @invcheckoff g ← control(nqubits(reg), i[1], i[2]=>X)
+    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(copytensor(T)))
     apply!(reg, g, REG_STACK)
     ~@routine
 end
@@ -171,6 +171,18 @@ This instruct will increase the stack top of `REG_STACK` by 1.
 """
 @i function apply_Greset!(reg::ArrayReg{1,T}, i::Int, REG_STACK) where T<:Tropical
     @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(MMatrix{2,2}(resettensor(T))))
+    apply!(reg, g, REG_STACK)
+    ~@routine
+end
+
+"""
+    apply_Gcut!(reg::ArrayReg, i::Int, REG_STACK)
+
+Apply a cut gate.
+This instruct will increase the stack top of `REG_STACK` by 1.
+"""
+@i function apply_Gcut!(reg::ArrayReg{1,T}, i::Int, REG_STACK) where T<:Tropical
+    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(MMatrix{2,2}(one(T), one(T), one(T), one(T))))
     apply!(reg, g, REG_STACK)
     ~@routine
 end

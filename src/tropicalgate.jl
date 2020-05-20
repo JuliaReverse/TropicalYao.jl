@@ -1,7 +1,7 @@
 using StaticArrays
 
 export tropicalblock, TropicalMatrixBlock
-export apply_G4!, apply_G2!, apply_G16!, apply_Gh!, apply_Gcp!, apply_Greset!
+export apply_G4!, apply_G2!, apply_G16!, apply_Gh!, apply_Gcp!, apply_Greset!, apply_Gcut!
 
 """
     TropicalMatrixBlock{N, MT} <: PrimitiveBlock{N}

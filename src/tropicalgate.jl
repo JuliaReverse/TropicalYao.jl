@@ -24,15 +24,14 @@ end
 TropicalMatrixBlock(m::AbstractMatrix) = TropicalMatrixBlock{log2i(size(m,1))}(m)
 (f::Type{Inv{TropicalMatrixBlock}})(m::TropicalMatrixBlock) = m.mat
 
-tropicalblock(m::AbstractMatrix{<:Tropical}) = TropicalMatrixBlock(m)
-mat(A::TropicalMatrixBlock) = A.mat
+tropicalblock(m::AbstractMatrix{<:TropicalTypes}) = TropicalMatrixBlock(m)
 
-function mat(::Type{T}, A::TropicalMatrixBlock) where {T}
+YaoBlocks.mat(A::TropicalMatrixBlock) where T = A.mat
+
+function YaoBlocks.mat(::Type{T}, A::TropicalMatrixBlock) where {T<:TropicalTypes}
     if eltype(A.mat) == T
         return A.mat
     else
-        # this errors before, but since we allow one to specify T in mat
-        # this should be allowed but with a suggestion
         @warn "converting $(eltype(A.mat)) to eltype $T, consider create another matblock with eltype $T"
         return copyto!(similar(A.mat, T), A.mat)
     end
@@ -41,6 +40,17 @@ end
 Base.:(==)(A::TropicalMatrixBlock, B::TropicalMatrixBlock) = A.mat == B.mat
 Base.copy(A::TropicalMatrixBlock) = TropicalMatrixBlock(copy(A.mat))
 Base.adjoint(x::TropicalMatrixBlock) = Daggered(x)
+function Base.show(io::IO, b::TropicalMatrixBlock{N}) where N
+    println(io, "TropicalMatrixBlock{$N}")
+    for i=1:size(b.mat, 1)
+        print(io, " ")
+        for j=1:size(b.mat, 1)
+            print(io, b.mat[i,j].n, "  ")
+        end
+        println(io)
+    end
+end
+Base.show(io::IO, ::MIME"text/plain", b::TropicalMatrixBlock) = Base.show(io, b)
 
 @i function YaoBlocks.apply!(reg::ArrayReg{1}, pb::PutBlock{N,C,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
     i_instruct!(vec(reg.state), pb.content.mat, pb.locs, (), (), REG_STACK)

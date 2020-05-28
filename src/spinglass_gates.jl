@@ -7,7 +7,7 @@ export copytensor, resettensor
 
 `v` should be a length 2 vector.
 """
-@i function spinglass_mag_tensor!(v::AbstractVector, h::Real)
+@i function spinglass_mag_tensor!(v::AbstractVector{TT}, h::Real) where TT<:TropicalTypes
     @safe @assert size(v) == (2,)
     Tropical(h)
     v[1] *= identity(h)
@@ -20,7 +20,7 @@ end
 
 `mat` should be a `one` tensor.
 """
-@i function spinglass_bond_tensor!(mat::AbstractMatrix, Jij::Real)
+@i function spinglass_bond_tensor!(mat::AbstractMatrix{TT}, Jij::Real) where TT<:TropicalTypes
     @safe @assert size(mat) == (2,2)
     Tropical(Jij)
     mat[1,1] *= identity(Jij)
@@ -30,7 +30,7 @@ end
     (~Tropical)(Jij)
 end
 
-@i function spinglass_g4_tensor!(mat::Diagonal, Jij::Real)
+@i function spinglass_g4_tensor!(mat::Diagonal{TT}, Jij::Real) where TT<:TropicalTypes
     @safe @assert size(mat) == (4,4)
     Tropical(Jij)
     mat[1,1] *= identity(Jij)
@@ -40,7 +40,7 @@ end
     (~Tropical)(Jij)
 end
 
-@i function spinglass_g16_tensor!(out!::AbstractMatrix{T}, Js) where T<:Tropical
+@i function spinglass_g16_tensor!(out!::AbstractMatrix{T}, Js) where T<:TropicalTypes
     @safe @assert length(Js) == 16
     @safe @assert size(out!) == (16, 16)
     @routine begin
@@ -82,10 +82,15 @@ end
 
 hypercubicI(ndim::Int, D::Int) = hypercubicI(Float64, ndim, D)
 
-spinglass_bond_tensor(Jij::T) where T<:Real = spinglass_bond_tensor!(ones(Tropical{T}, 2, 2), Jij)[1]
-spinglass_mag_tensor(h::T) where T<:Real = spinglass_mag_tensor!(ones(Tropical{T}, 2), h)[1]
-spinglass_g4_tensor(Jij::T) where T<:Real = spinglass_g4_tensor!(Diagonal(ones(Tropical{T}, 4)), Jij)[1]
-spinglass_g16_tensor(Js::Vector{T}) where T<:Real = spinglass_g16_tensor!(ones(Tropical{T}, 16, 16), Js)[1]
+spinglass_bond_tensor(::Type{TT}, Jij::T) where {T<:Real, TT} = spinglass_bond_tensor!(ones(TT, 2, 2), Jij)[1]
+spinglass_mag_tensor(::Type{TT}, h::T) where {T<:Real, TT} = spinglass_mag_tensor!(ones(TT, 2), h)[1]
+spinglass_g4_tensor(::Type{TT}, Jij::T) where {T<:Real, TT} = spinglass_g4_tensor!(Diagonal(ones(TT, 4)), Jij)[1]
+spinglass_g16_tensor(::Type{TT}, Js::Vector{T}) where {T<:Real, TT} = spinglass_g16_tensor!(ones(TT, 16, 16), Js)[1]
+
+spinglass_bond_tensor(Jij::T) where T<:Real = spinglass_bond_tensor(Tropical{T}, Jij)
+spinglass_mag_tensor(h::T) where T<:Real = spinglass_mag_tensor(Tropical{T}, h)
+spinglass_g4_tensor(Jij::T) where T<:Real = spinglass_g4_tensor(Tropical{T}, Jij)
+spinglass_g16_tensor(Js::Vector{T}) where T<:Real = spinglass_g16_tensor(Tropical{T}, Js)
 
 """
     apply_G2!(reg::ArrayReg, i::Int, J::Real, REG_STACK)

@@ -2,7 +2,8 @@ struct CountingTropical{T} <: Number
     n::T
     c::Int32
 end
-CountingTropical(x::Real) = CountingTropical(x,one(x))
+CountingTropical(x::Real) = CountingTropical(x, Int32(1))
+CountingTropical{T1}(x::T2) where {T1, T2} = CountingTropical{T1}(T1(x), Int32(1))
 
 Base.:*(a::CountingTropical, b::CountingTropical) = CountingTropical(a.n + b.n, a.c * b.c)
 function Base.:+(a::CountingTropical, b::CountingTropical)
@@ -16,8 +17,10 @@ function Base.:+(a::CountingTropical, b::CountingTropical)
     end
     CountingTropical(n, c)
 end
-Base.zero(::Type{CountingTropical{T}}) where T<:Integer = CountingTropical(T(-999999), T(1))
-Base.zero(::Type{CountingTropical{T}}) where T<:AbstractFloat = CountingTropical(typemin(T), T(1))
+Base.zero(::Type{CountingTropical{T}}) where T<:Integer = CountingTropical(T(-999999), Int32(1))
+Base.zero(::Type{CountingTropical{T}}) where T<:AbstractFloat = CountingTropical(typemin(T), Int32(1))
+Base.one(::Type{CountingTropical{T}}) where T<:Integer = CountingTropical(zero(T), Int32(1))
+Base.one(::Type{CountingTropical{T}}) where T<:AbstractFloat = CountingTropical(zero(T), Int32(1))
 
 TropicalNumbers.content(x::CountingTropical) = x.n
 

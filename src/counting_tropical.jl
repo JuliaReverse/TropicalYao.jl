@@ -4,6 +4,7 @@ struct CountingTropical{T} <: Number
 end
 CountingTropical(x::Real) = CountingTropical(x, Int32(1))
 CountingTropical{T1}(x::T2) where {T1, T2} = CountingTropical{T1}(T1(x), Int32(1))
+CountingTropical{T1}(x::CountingTropical{T1}) where {T1} = x
 
 Base.:*(a::CountingTropical, b::CountingTropical) = CountingTropical(a.n + b.n, a.c * b.c)
 function Base.:+(a::CountingTropical, b::CountingTropical)

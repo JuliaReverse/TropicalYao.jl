@@ -10,8 +10,8 @@ export copytensor, resettensor
 @i function spinglass_mag_tensor!(v::AbstractVector{TT}, h::Real) where TT<:TropicalTypes
     @safe @assert size(v) == (2,)
     Tropical(h)
-    v[1] *= identity(h)
-    v[2] /= identity(h)
+    v[1] *= h
+    v[2] /= h
     (~Tropical)(h)
 end
 
@@ -23,20 +23,20 @@ end
 @i function spinglass_bond_tensor!(mat::AbstractMatrix{TT}, Jij::Real) where TT<:TropicalTypes
     @safe @assert size(mat) == (2,2)
     Tropical(Jij)
-    mat[1,1] *= identity(Jij)
-    mat[2,2] *= identity(Jij)
-    mat[1,2] /= identity(Jij)
-    mat[2,1] /= identity(Jij)
+    mat[1,1] *= Jij
+    mat[2,2] *= Jij
+    mat[1,2] /= Jij
+    mat[2,1] /= Jij
     (~Tropical)(Jij)
 end
 
 @i function spinglass_g4_tensor!(mat::Diagonal{TT}, Jij::Real) where TT<:TropicalTypes
     @safe @assert size(mat) == (4,4)
     Tropical(Jij)
-    mat[1,1] *= identity(Jij)
-    mat[2,2] /= identity(Jij)
-    mat[3,3] /= identity(Jij)
-    mat[4,4] *= identity(Jij)
+    mat[1,1] *= Jij
+    mat[2,2] /= Jij
+    mat[3,3] /= Jij
+    mat[4,4] *= Jij
     (~Tropical)(Jij)
 end
 
@@ -47,14 +47,14 @@ end
         y ← ones(T,2,2,2,2,2,2,2,2)
         xs ← ([ones(T,2,2) for i=1:16]...,)
         for i = 1:length(Js)
-            spinglass_bond_tensor!(tget(xs,i), Js[i])
+            spinglass_bond_tensor!(xs |> tget(i), Js[i])
         end
         ixs ← ([(ix...,) for ix in split("aα,aβ,aγ,aδ,bα,bβ,bγ,bδ,cα,cβ,cγ,cδ,dα,dβ,dγ,dδ", ',')]...,)
         iy ← ("abcdαβγδ"...,)
-        NiLogLikeNumbers.einsum!(ixs, xs, iy, y)
+        LogLikeNumbers.i_einsum!(ixs, xs, iy, y)
     end
     for i=1:length(out!)
-        out![i] *= identity(y[i])
+        out![i] *= y[i]
     end
     ~@routine
 end

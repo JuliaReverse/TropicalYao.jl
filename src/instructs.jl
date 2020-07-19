@@ -44,7 +44,7 @@ Increase the stack size for 1.
 end
 
 @i @inline function unsafe_store!(neginf::Tropical{T}, x::Tropical{T}) where T
-    neginf *= identity(x)
+    neginf *= x
 end
 
 """
@@ -105,7 +105,7 @@ end
     @invcheckoff @inbounds for i=1:length(configs)
         x ← configs[i]
         for i=1:length(U.diag)
-            state[x+locs_raw[i]] *= identity(U.diag[i])
+            state[x+locs_raw[i]] *= U.diag[i]
         end
     end
 end
@@ -122,13 +122,13 @@ _scache(u::AbstractMatrix{T}) where {T} = MVector{size(u,1)}(ones(T, size(u, 1))
 			@routine begin
             	x ← configs[i]
 				for l=1:length(locs_raw)
-					scache[l] *= identity(state[x + locs_raw[l]])
+					scache[l] *= state[x + locs_raw[l]]
 				end
 			end
 			for l=1:size(U,1)
 				el ← zero(T)
 				@routine for k=1:size(U,2)
-					scache[k] *= identity(U[l,k])
+					scache[k] *= U[l,k]
 					if (el.n < scache[k].n, branch_keeper[k])
 						FLIP(branch_keeper[k])
 						NiLang.SWAP(el, scache[k])
@@ -153,10 +153,10 @@ end
 			b ← one(T)
 			c ← one(T)
 			d ← one(T)
-			a *= identity(U[1])
-			b *= identity(U[2])
-			c *= identity(U[3])
-			d *= identity(U[4])
+			a *= U[1]
+			b *= U[2]
+			c *= U[3]
+			d *= U[4]
 		end
 		incstack!(REG_STACK)
         @inbounds for i=1:length(configs)
@@ -172,20 +172,20 @@ end
 				s4 ← one(T)
 				s3 *= s1 * b
 				s4 *= s2 * d
-				s1 *= identity(a)
-				s2 *= identity(c)
+				s1 *= a
+				s2 *= c
 				bk1 ← s1 > s2
 				bk2 ← s3 > s4
 			end
 			if (bk1, ~)
-				state[is1] *= identity(s1)
+				state[is1] *= s1
 			else
-				state[is1] *= identity(s2)
+				state[is1] *= s2
 			end
 			if (bk2, ~)
-				state[is2] *= identity(s3)
+				state[is2] *= s3
 			else
-				state[is2] *= identity(s4)
+				state[is2] *= s4
 			end
 			~@routine
         	NiLang.SWAP(s1, REG_STACK[is1])

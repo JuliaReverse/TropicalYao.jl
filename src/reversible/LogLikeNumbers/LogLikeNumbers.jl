@@ -4,6 +4,7 @@ using LogarithmicNumbers
 using NiLang, NiLang.AD
 
 import NiLang: i_sum
+using ..Reversible: TropicalTypes
 
 export Tropical
 

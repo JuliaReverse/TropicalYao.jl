@@ -1,4 +1,4 @@
-using TropicalYao.LogLikeNumbers
+using TropicalYao.Reversible.LogLikeNumbers
 using Test
 
 @testset "i_einsum" begin

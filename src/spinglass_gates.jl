@@ -1,62 +1,9 @@
-export spinglass_mag_tensor!, spinglass_g4_tensor!, spinglass_bond_tensor!, spinglass_g16_tensor!
-export spinglass_mag_tensor, spinglass_g4_tensor, spinglass_bond_tensor, spinglass_g16_tensor
-export copytensor, resettensor
-
-"""
-    spinglass_mag_tensor!(v, Jij)
-
-`v` should be a length 2 vector.
-"""
-@i function spinglass_mag_tensor!(v::AbstractVector{TT}, h::Real) where TT<:TropicalTypes
-    @safe @assert size(v) == (2,)
-    Tropical(h)
-    v[1] *= h
-    v[2] /= h
-    (~Tropical)(h)
+function bondtensor(::Type{TT}, J) where TT
+    TT.([J -J; -J J])
 end
 
-"""
-    spinglass_bond_tensor!(mat, Jij)
-
-`mat` should be a `one` tensor.
-"""
-@i function spinglass_bond_tensor!(mat::AbstractMatrix{TT}, Jij::Real) where TT<:TropicalTypes
-    @safe @assert size(mat) == (2,2)
-    Tropical(Jij)
-    mat[1,1] *= Jij
-    mat[2,2] *= Jij
-    mat[1,2] /= Jij
-    mat[2,1] /= Jij
-    (~Tropical)(Jij)
-end
-
-@i function spinglass_g4_tensor!(mat::Diagonal{TT}, Jij::Real) where TT<:TropicalTypes
-    @safe @assert size(mat) == (4,4)
-    Tropical(Jij)
-    mat[1,1] *= Jij
-    mat[2,2] /= Jij
-    mat[3,3] /= Jij
-    mat[4,4] *= Jij
-    (~Tropical)(Jij)
-end
-
-@i function spinglass_g16_tensor!(out!::AbstractMatrix{T}, Js) where T<:TropicalTypes
-    @safe @assert length(Js) == 16
-    @safe @assert size(out!) == (16, 16)
-    @routine begin
-        y ← ones(T,2,2,2,2,2,2,2,2)
-        xs ← ([ones(T,2,2) for i=1:16]...,)
-        for i = 1:length(Js)
-            spinglass_bond_tensor!(xs |> tget(i), Js[i])
-        end
-        ixs ← ([(ix...,) for ix in split("aα,aβ,aγ,aδ,bα,bβ,bγ,bδ,cα,cβ,cγ,cδ,dα,dβ,dγ,dδ", ',')]...,)
-        iy ← ("abcdαβγδ"...,)
-        LogLikeNumbers.i_einsum!(ixs, xs, iy, y)
-    end
-    for i=1:length(out!)
-        out![i] *= y[i]
-    end
-    ~@routine
+function vertextensor(::Type{TT}, h) where TT
+    TT.([h, -h])
 end
 
 function copytensor(::Type{T}) where T
@@ -82,112 +29,37 @@ end
 
 hypercubicI(ndim::Int, D::Int) = hypercubicI(Float64, ndim, D)
 
-spinglass_bond_tensor(::Type{TT}, Jij::T) where {T<:Real, TT} = spinglass_bond_tensor!(ones(TT, 2, 2), Jij)[1]
-spinglass_mag_tensor(::Type{TT}, h::T) where {T<:Real, TT} = spinglass_mag_tensor!(ones(TT, 2), h)[1]
-spinglass_g4_tensor(::Type{TT}, Jij::T) where {T<:Real, TT} = spinglass_g4_tensor!(Diagonal(ones(TT, 4)), Jij)[1]
-spinglass_g16_tensor(::Type{TT}, Js::Vector{T}) where {T<:Real, TT} = spinglass_g16_tensor!(ones(TT, 16, 16), Js)[1]
-
-spinglass_bond_tensor(Jij::T) where T<:Real = spinglass_bond_tensor(Tropical{T}, Jij)
-spinglass_mag_tensor(h::T) where T<:Real = spinglass_mag_tensor(Tropical{T}, h)
-spinglass_g4_tensor(Jij::T) where T<:Real = spinglass_g4_tensor(Tropical{T}, Jij)
-spinglass_g16_tensor(Js::Vector{T}) where T<:Real = spinglass_g16_tensor(Tropical{T}, Js)
-
-"""
-    apply_G2!(reg::ArrayReg, i::Int, J::Real, REG_STACK)
-
-Apply a spin glass bond tensor (parametrized by coupling `J`) on site `i`.
-This instruct will increase the stack top of `REG_STACK` by 1.
-"""
-@i function apply_G2!(reg::ArrayReg{1,T}, i::Int, J::Real, REG_STACK) where T<:Tropical
-    @routine @invcheckoff begin
-        nbit ← nqubits(reg)
-        blk ← put(nbit, i=>tropicalblock(MMatrix{2,2}(ones(T, 2, 2))))
-        spinglass_bond_tensor!(blk.content.mat, J)
+Gh(vertex_tensor::Vector{T}) where T = tropicalblock(Diagonal(vertex_tensor) |> LuxurySparse.staticize)
+Gvb(bond_tensor::Matrix{T}) where T = tropicalblock(Diagonal([bond_tensor...]) |> LuxurySparse.staticize)
+Ghb(bond_tensor::Matrix{T}) where T = tropicalblock(bond_tensor |> LuxurySparse.staticize)
+function G16(::Type{TT}, Js) where TT<:TropicalTypes
+    xs = map(x->_bondtensor(TT, x), Js)
+    mat = zeros(TT, 2, 2, 2, 2, 2, 2, 2, 2)
+    for a=1:2, α=1:2, β=1:2, b=1:2, γ=1:2, c=1:2, d=1:2, δ=1:2
+        mat[a,b,c,d,α,β,γ,δ] += xs[1][a,α] * xs[2][a,β] * xs[3][a,γ] * xs[4][a,δ] *
+        xs[5][b,α] * xs[6][b,β] * xs[7][b,γ] * xs[8][b,δ] * xs[9][c,α] * xs[10][c,β] *
+        xs[11][c,γ] * xs[12][c,δ] * xs[13][d,α] * xs[14][d,β] * xs[15][d,γ] * xs[16][d,δ]
     end
-    apply!(reg, blk, REG_STACK)
-    ~@routine
+    tropicalblock(reshape(mat, 16, 16) |> LuxurySparse.staticize)
+end
+
+function _bondtensor(::Type{TT}, J) where TT
+    TT.([J -J; -J J])
 end
 
 """
-    apply_Gh!(reg::ArrayReg, i::Int, h::Real, REG_STACK)
+    Gcp(T)
 
-Apply a spin glass magnetic tensor (parametrized by coupling `h`) on site `i`.
-This instruct will increase the stack top of `REG_STACK` by 0.
+copy state of qubit 2 -> 1.
 """
-@i function apply_Gh!(reg::ArrayReg{1,T}, i::Int, h::Real, REG_STACK) where T<:Tropical
-    @routine @invcheckoff begin
-        nbit ← nqubits(reg)
-        blk ← put(nbit, i=>tropicalblock(Diagonal(MVector{2}(ones(T, 2)))))
-        spinglass_mag_tensor!(blk.content.mat.diag, h)
-    end
-    apply!(reg, blk, REG_STACK)
-    ~@routine
+function Gcp(::Type{TT}) where TT<:TropicalTypes
+    tropicalblock(copytensor(TT))
 end
 
-"""
-    apply_G4!(reg::ArrayReg, i::NTuple{2,Int}, J::Real, REG_STACK)
-
-Apply a vertical spin glass bond tensor (parametrized by coupling `J`) on sites `i[1]` and `i[2]`.
-This instruct will increase the stack top of `REG_STACK` by 0.
-"""
-@i function apply_G4!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, J::Real, REG_STACK) where T<:Tropical
-    @routine @invcheckoff begin
-        nbit ← nqubits(reg)
-        blk ← put(nbit, i=>tropicalblock(Diagonal(MVector{4}(ones(T, 4)))))
-        spinglass_g4_tensor!(blk.content.mat, J)
-    end
-    apply!(reg, blk, REG_STACK)
-    ~@routine
+function Greset(::Type{TT}) where TT<:TropicalTypes
+    tropicalblock([one(TT) one(TT); zero(TT) zero(TT)])
 end
 
-"""
-    apply_G16!(reg::ArrayReg, i::NTuple{4,Int}, Js::AbstractVector, REG_STACK)
-
-Apply a spin glass tensor of K(4,4) graph (the intra-block coupling term in the Chimera graph that parametrized by 16 coupling terms `Js`) on sites `i[1:4]`.
-This instruct will increase the stack top of `REG_STACK` by 1.
-"""
-@i function apply_G16!(reg::ArrayReg{1,T}, i::NTuple{4,Int}, Js::AbstractVector{<:Real}, REG_STACK) where T<:Tropical
-    @routine @invcheckoff begin
-        nbit ← nqubits(reg)
-        blk ← put(nbit, i=>tropicalblock(MMatrix{16,16}(ones(T, 16, 16))))
-        spinglass_g16_tensor!(blk.content.mat, Js)
-    end
-    apply!(reg, blk, REG_STACK)
-    ~@routine
-end
-
-"""
-    apply_Gcp!(reg::ArrayReg, i::NTuple{2,Int}, REG_STACK)
-
-Apply a copy gate (or CNOT).
-This instruct will increase the stack top of `REG_STACK` by 1.
-"""
-@i function apply_Gcp!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, REG_STACK) where T<:Tropical
-    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(copytensor(T)))
-    apply!(reg, g, REG_STACK)
-    ~@routine
-end
-
-"""
-    apply_Greset!(reg::ArrayReg, i::Int, REG_STACK)
-
-Apply a reset gate (or SUM).
-This instruct will increase the stack top of `REG_STACK` by 1.
-"""
-@i function apply_Greset!(reg::ArrayReg{1,T}, i::Int, REG_STACK) where T<:Tropical
-    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(MMatrix{2,2}(resettensor(T))))
-    apply!(reg, g, REG_STACK)
-    ~@routine
-end
-
-"""
-    apply_Gcut!(reg::ArrayReg, i::Int, REG_STACK)
-
-Apply a cut gate.
-This instruct will increase the stack top of `REG_STACK` by 1.
-"""
-@i function apply_Gcut!(reg::ArrayReg{1,T}, i::Int, REG_STACK) where T<:Tropical
-    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(MMatrix{2,2}(one(T), one(T), one(T), one(T))))
-    apply!(reg, g, REG_STACK)
-    ~@routine
+function Gcut(::Type{TT}) where TT<:TropicalTypes
+    tropicalblock([one(TT) one(TT); one(TT) one(TT)])
 end

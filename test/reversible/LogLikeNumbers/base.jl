@@ -1,4 +1,4 @@
-using TropicalNumbers, TropicalYao.LogLikeNumbers
+using TropicalNumbers, TropicalYao.Reversible.LogLikeNumbers
 using Test, NiLang.AD, NiLang, Random
 using ForwardDiff
 

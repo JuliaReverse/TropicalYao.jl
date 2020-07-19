@@ -1,7 +1,4 @@
-using StaticArrays
-
 export tropicalblock, TropicalMatrixBlock
-export apply_G4!, apply_G2!, apply_G16!, apply_Gh!, apply_Gcp!, apply_Greset!, apply_Gcut!
 
 """
     TropicalMatrixBlock{N, MT} <: PrimitiveBlock{N}
@@ -21,8 +18,7 @@ function TropicalMatrixBlock{N}(m::MT) where {N,T,MT<:AbstractMatrix{T}}
     return TropicalMatrixBlock{N,T,MT}(m)
 end
 
-TropicalMatrixBlock(m::AbstractMatrix) = TropicalMatrixBlock{log2i(size(m,1))}(m)
-(f::Type{Inv{TropicalMatrixBlock}})(m::TropicalMatrixBlock) = m.mat
+TropicalMatrixBlock(m::AbstractMatrix) = TropicalMatrixBlock{Int(log2(size(m,1)))}(m)
 
 tropicalblock(m::AbstractMatrix{<:TropicalTypes}) = TropicalMatrixBlock(m)
 
@@ -51,14 +47,3 @@ function Base.show(io::IO, b::TropicalMatrixBlock{N}) where N
     end
 end
 Base.show(io::IO, ::MIME"text/plain", b::TropicalMatrixBlock) = Base.show(io, b)
-
-@i function YaoBlocks.apply!(reg::ArrayReg{1}, pb::PutBlock{N,C,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
-    i_instruct!(vec(reg.state), pb.content.mat, pb.locs, (), (), REG_STACK)
-end
-@i function YaoBlocks.apply!(reg::ArrayReg{1}, cb::ControlBlock{N,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
-    i_instruct!(vec(reg.state), cb.content.mat, cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
-end
-@i function YaoBlocks.apply!(reg::ArrayReg{1,<:Tropical}, cb::ControlBlock{N,<:XGate}, REG_STACK) where {N, C}
-    i_instruct!(vec(reg.state), Val(:X), cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
-end
-YaoBlocks.apply!(reg::ArrayReg{B}, b::TropicalMatrixBlock, REG_STACK) where B = throw(NotImplementedError(:apply!, typeof((reg, b))))

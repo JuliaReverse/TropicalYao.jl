@@ -1,4 +1,4 @@
-using TropicalYao.LogLikeNumbers
+using TropicalYao.Reversible.LogLikeNumbers
 
 @testset "Tropical algebra" begin
 	Random.seed!(4)

@@ -1,23 +1,16 @@
 export i_gemm!, i_gemv!, i_sum, i_unsafe_addto, i_muladd
 export maxloc, gaussian_log
 
-export ULog
-const ULog{T} = ULogarithmic{T}
-const LogLikeNumber{T} = Union{ULog{T}, Tropical{T}}
+const LogLikeNumber{T} = Union{ULogarithmic{T}, Tropical{T}}
 
 const TropicalG{T,TG} = Tropical{GVar{T,TG}}
-const ULogG{T,TG} = ULogarithmic{GVar{T,TG}}
-
-# Happy Pirate!!!!!
-ULog{T}(gv::T) where T<:Real = exp(ULogarithmic{T}, gv)
-ULog(gv::T) where T<:Real = exp(ULogarithmic, gv)
 
 import TropicalNumbers: content
 @fieldview content(x::ULogarithmic) = x.log
 NiLang.chfield(x::Tropical{T}, ::typeof(content), val::T) where T = Tropical{T}(val)
 
 # AD wrappers
-for T in [:Tropical, :ULogarithmic]
+for T in [:Tropical]
     @eval NiLang.AD.GVar(x::$T) = $T(GVar(content(x), zero(content(x))))
     @eval (_::Type{Inv{$T}})(x::$T) = content(x)
     @eval NiLang.AD.grad(x::$T{<:GVar}) = $T(grad(content(x)))

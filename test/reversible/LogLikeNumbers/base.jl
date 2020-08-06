@@ -1,6 +1,7 @@
 using TropicalNumbers, TropicalYao.Reversible.LogLikeNumbers
 using Test, NiLang.AD, NiLang, Random
 using ForwardDiff
+using NiLang.NiLangCore: default_constructor
 
 @testset "GVar" begin
     x = Tropical(0.4)
@@ -12,11 +13,10 @@ using ForwardDiff
     x = GVar(Tropical(0))
     @test zero(x) isa Tropical{GVar{Int, Int}}
 
-    x = ULog(0.4)
-	@test (~ULog)(x) == 0.4
-    @test GVar(x) isa ULog{<:GVar}
-    @test grad(x) isa ULog{Float64}
-    @test (~GVar)(GVar(ULog(0.4))) == x
+    x = ULogarithmic(0.4)
+    @test GVar(x) isa ULogarithmic{<:GVar}
+    @test grad(x) isa ULogarithmic{Float64}
+    @test (~GVar)(GVar(ULogarithmic(0.4))) == x
 end
 
 @testset "basic instructions" begin
@@ -31,31 +31,38 @@ end
 	@test bk == true
 end
 
-@testset "basic instructions, ULog" begin
-	x, y = ULog(1), ULog(2)
+@testset "basic instructions, ULogarithmic" begin
+	x, y = default_constructor(ULogarithmic, 1),
+		default_constructor(ULogarithmic, 2)
 	@instr x *= y
-	@test x == ULog(3)
-	@test y == ULog(2)
+	@test x == default_constructor(ULogarithmic, 3)
+	@test y == default_constructor(ULogarithmic, 2)
 
 	@test PlusEq(gaussian_log)(1.0, 2.0) == (1.0+log(1+exp(2.0)), 2.0)
 	@test check_grad(PlusEq(gaussian_log), (1.0, 2.0); iloss=1)
 
-	x, y,z = ULog(7.0), ULog(2.0), ULog(3.0)
+	x, y,z = default_constructor(ULogarithmic, 7.0),
+		default_constructor(ULogarithmic, 2.0),
+		default_constructor(ULogarithmic, 3.0)
 	@instr x *= y + z
 	@test check_inv(MulEq(+), (x, y, z))
 	@test x.log ≈ log(exp(7.0) * (exp(2.0) + exp(3.0)))
-	x, y,z = ULog(7.0), ULog(5.0), ULog(3.0)
+	x, y,z = default_constructor(ULogarithmic, 7.0),
+		default_constructor(ULogarithmic, 5.0),
+		default_constructor(ULogarithmic, 3.0)
 	@instr x *= y - z
 	@test x.log ≈ log(exp(7.0) * (exp(5.0) - exp(3.0)))
 	function muleq(f, x, y, z)
-		x = ULog(x)
-		y = ULog(y)
-		z = ULog(z)
+		x = default_constructor(ULogarithmic, x)
+		y = default_constructor(ULogarithmic, y)
+		z = default_constructor(ULogarithmic, z)
 		x *= f(y, z)
 		x.log
 	end
 	g1 = ForwardDiff.gradient(arr->muleq(+, arr...), [7.0, 5.0, 3.0])
-	x, y,z = ULog(7.0), ULog(5.0), ULog(3.0)
+	x, y,z = default_constructor(ULogarithmic, 7.0),
+		default_constructor(ULogarithmic, 5.0),
+		default_constructor(ULogarithmic, 3.0)
 	@instr (MulEq(+))(x, y, z)
 	@instr GVar(x)
 	@instr GVar(y)
@@ -67,7 +74,9 @@ end
 	@test grad(z.log) ≈ g1[3]
 
 	g2 = ForwardDiff.gradient(arr->muleq(-, arr...), [7.0, 5.0, 3.0])
-	x, y,z = ULog(2.0), ULog(5.0), ULog(3.0)
+	x, y,z = default_constructor(ULogarithmic, 2.0),
+		default_constructor(ULogarithmic, 5.0),
+		default_constructor(ULogarithmic, 3.0)
 	@instr (MulEq(-))(x, y, z)
 	@instr GVar(x)
 	@instr GVar(y)

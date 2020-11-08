@@ -195,5 +195,5 @@ end
 	end
 end
 
-NiLang.AD.GVar(x::ArrayReg{B}) where B = ArrayReg{B}(GVar(x.state))
+NiLang.AD.GVar(x::ArrayReg{B}) where B = @suppress ArrayReg{B}(GVar(x.state))
 NiLang.AD.GVar(x::VecStack) where B = VecStack(GVar(x.data), x.top)

@@ -1,6 +1,7 @@
 using TropicalYao.Reversible
 using TropicalNumbers
 using LinearAlgebra, Test
+using Suppressor
 using Yao
 
 
@@ -16,7 +17,7 @@ using Yao
 end
 
 @testset "tropical block" begin
-    reg = ArrayReg(Tropical.(randn(1<<10)))
+    reg = @suppress ArrayReg(Tropical.(randn(1<<10)))
     S = stack4reg(reg, 10)
     reg1, _, _, S = apply_Ghb!(copy(reg), 2, 0.5, copy(S))
     reg2 = copy(reg) |> put(10, 2=>matblock(i_bondtensor(0.5)))

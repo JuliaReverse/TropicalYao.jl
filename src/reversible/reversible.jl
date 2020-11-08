@@ -6,6 +6,7 @@ using TropicalNumbers
 using StaticArrays
 using LinearAlgebra: Diagonal
 using LuxurySparse
+using Suppressor
 using ..TropicalYao: TropicalMatrixBlock, TropicalTypes, tropicalblock, copytensor, resettensor
 
 export Tropical, CountingTropical, TropicalTypes

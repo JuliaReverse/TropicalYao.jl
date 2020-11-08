@@ -2,18 +2,17 @@ using TropicalYao.Reversible
 using Test
 using LinearAlgebra
 using Yao, NiLang
-using Suppressor
 
 @testset "new instr" begin
     g4 = Diagonal(i_gvb_tensor(1.5))
-    reg = @suppress ArrayReg(randn(1<<12) .|> Tropical)
+    reg = ArrayReg(randn(1<<12) .|> Tropical)
     S = stack4reg(reg, 0)
     s1 = i_instruct!(copy(vec(reg.state)), g4, (3, 7), (), (), S)[1]
     nreg = copy(reg) |> put(12, (3, 7)=>matblock(g4))
     @test statevec(nreg) ≈ s1
 
     g4 = randn(4, 4) .|> Tropical
-    reg = @suppress ArrayReg(randn(1<<12) .|> Tropical)
+    reg = ArrayReg(randn(1<<12) .|> Tropical)
     S = stack4reg(reg, 1)
     s1 = i_instruct!(copy(vec(reg.state)), g4, (3, 7), (), (), S)[1]
     nreg = copy(reg) |> put(12, (3, 7)=>matblock(g4))

@@ -1,7 +1,7 @@
 name = "TropicalYao"
 uuid = "8a7e9035-3e12-4286-9ab6-425b4286d857"
 authors = ["GiggleLiu"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 BitBasis = "50ba71b6-fa0f-514d-ae9a-0916efc90dcf"

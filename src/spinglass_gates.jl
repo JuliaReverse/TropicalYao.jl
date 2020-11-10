@@ -31,7 +31,7 @@ hypercubicI(ndim::Int, D::Int) = hypercubicI(Float64, ndim, D)
 
 Gh(vertex_tensor::Vector{T}) where T = tropicalblock(Diagonal(vertex_tensor) |> LuxurySparse.staticize)
 Gvb(bond_tensor::Matrix{T}) where T = tropicalblock(Diagonal([bond_tensor...]) |> LuxurySparse.staticize)
-Ghb(bond_tensor::Matrix{T}) where T = tropicalblock(bond_tensor |> LuxurySparse.staticize)
+Ghb(bond_tensor::Matrix{T}) where T = tropicalblock(transpose(bond_tensor) |> LuxurySparse.staticize)
 function G16(::Type{TT}, Js) where TT<:TropicalTypes
     xs = map(x->_bondtensor(TT, x), Js)
     mat = zeros(TT, 2, 2, 2, 2, 2, 2, 2, 2)

@@ -72,13 +72,13 @@ i_gvb_tensor(Jij::T) where T<:Real = i_gvb_tensor(Tropical{T}, Jij)
 i_g16_tensor(Js::Vector{T}) where T<:Real = i_g16_tensor(Tropical{T}, Js)
 
 @i function YaoBlocks.apply!(reg::ArrayReg{1}, pb::PutBlock{N,C,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
-    i_instruct!(vec(reg.state), pb.content.mat, pb.locs, (), (), REG_STACK)
+    i_instruct!(reg.state |> vec, pb.content.mat, pb.locs, (), (), REG_STACK)
 end
 @i function YaoBlocks.apply!(reg::ArrayReg{1}, cb::ControlBlock{N,<:TropicalMatrixBlock}, REG_STACK) where {N, C}
-    i_instruct!(vec(reg.state), cb.content.mat, cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
+    i_instruct!(reg.state |> vec, cb.content.mat, cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
 end
 @i function YaoBlocks.apply!(reg::ArrayReg{1,<:Tropical}, cb::ControlBlock{N,<:XGate}, REG_STACK) where {N, C}
-    i_instruct!(vec(reg.state), Val(:X), cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
+    i_instruct!(reg.state |> vec, Val(:X), cb.locs, cb.ctrl_locs, cb.ctrl_config, REG_STACK)
 end
 YaoBlocks.apply!(reg::ArrayReg{B}, b::TropicalMatrixBlock, REG_STACK) where B = throw(NotImplementedError(:apply!, typeof((reg, b))))
 

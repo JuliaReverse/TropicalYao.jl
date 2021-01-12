@@ -18,7 +18,7 @@ YaoArrayRegister = "e600142f-9330-5003-8abb-0ebd767abc51"
 [compat]
 BitBasis = "0.6, 0.7"
 LogarithmicNumbers = "0.4"
-NiLang = "0.9"
+NiLang = "0.8"
 StaticArrays = "0.10,0.12"
 TropicalNumbers = "0.1, 0.2"
 TupleTools = "1.0,1.2"

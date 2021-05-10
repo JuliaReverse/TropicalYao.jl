@@ -32,37 +32,37 @@ end
 end
 
 @testset "basic instructions, ULogarithmic" begin
-	x, y = default_constructor(ULogarithmic, 1),
-		default_constructor(ULogarithmic, 2)
+    x, y = default_constructor(ULogarithmic{Int}, 1),
+    default_constructor(ULogarithmic{Int}, 2)
 	@instr x *= y
-	@test x == default_constructor(ULogarithmic, 3)
-	@test y == default_constructor(ULogarithmic, 2)
+    @test x == default_constructor(ULogarithmic{Int}, 3)
+    @test y == default_constructor(ULogarithmic{Int}, 2)
 
 	@test PlusEq(gaussian_log)(1.0, 2.0) == (1.0+log(1+exp(2.0)), 2.0)
 	@test check_grad(PlusEq(gaussian_log), (1.0, 2.0); iloss=1)
 
-	x, y,z = default_constructor(ULogarithmic, 7.0),
-		default_constructor(ULogarithmic, 2.0),
-		default_constructor(ULogarithmic, 3.0)
+    x, y,z = default_constructor(ULogarithmic{Float64}, 7.0),
+    default_constructor(ULogarithmic{Float64}, 2.0),
+    default_constructor(ULogarithmic{Float64}, 3.0)
 	@instr x *= y + z
 	@test check_inv(MulEq(+), (x, y, z))
 	@test x.log ≈ log(exp(7.0) * (exp(2.0) + exp(3.0)))
-	x, y,z = default_constructor(ULogarithmic, 7.0),
-		default_constructor(ULogarithmic, 5.0),
-		default_constructor(ULogarithmic, 3.0)
+    x, y,z = default_constructor(ULogarithmic{Float64}, 7.0),
+    default_constructor(ULogarithmic{Float64}, 5.0),
+    default_constructor(ULogarithmic{Float64}, 3.0)
 	@instr x *= y - z
 	@test x.log ≈ log(exp(7.0) * (exp(5.0) - exp(3.0)))
 	function muleq(f, x, y, z)
-		x = default_constructor(ULogarithmic, x)
-		y = default_constructor(ULogarithmic, y)
-		z = default_constructor(ULogarithmic, z)
+        x = default_constructor(ULogarithmic{Float64}, x)
+        y = default_constructor(ULogarithmic{Float64}, y)
+        z = default_constructor(ULogarithmic{Float64}, z)
 		x *= f(y, z)
 		x.log
 	end
 	g1 = ForwardDiff.gradient(arr->muleq(+, arr...), [7.0, 5.0, 3.0])
-	x, y,z = default_constructor(ULogarithmic, 7.0),
-		default_constructor(ULogarithmic, 5.0),
-		default_constructor(ULogarithmic, 3.0)
+    x, y,z = default_constructor(ULogarithmic{Float64}, 7.0),
+    default_constructor(ULogarithmic{Float64}, 5.0),
+    default_constructor(ULogarithmic{Float64}, 3.0)
 	@instr (MulEq(+))(x, y, z)
 	@instr GVar(x)
 	@instr GVar(y)
@@ -74,9 +74,9 @@ end
 	@test grad(z.log) ≈ g1[3]
 
 	g2 = ForwardDiff.gradient(arr->muleq(-, arr...), [7.0, 5.0, 3.0])
-	x, y,z = default_constructor(ULogarithmic, 2.0),
-		default_constructor(ULogarithmic, 5.0),
-		default_constructor(ULogarithmic, 3.0)
+    x, y,z = default_constructor(ULogarithmic{Float64}, 2.0),
+    default_constructor(ULogarithmic{Float64}, 5.0),
+    default_constructor(ULogarithmic{Float64}, 3.0)
 	@instr (MulEq(-))(x, y, z)
 	@instr GVar(x)
 	@instr GVar(y)

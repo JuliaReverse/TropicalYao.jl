@@ -52,10 +52,10 @@ end
     default_constructor(ULogarithmic{Float64}, 3.0)
 	@instr x *= y - z
 	@test x.log ≈ log(exp(7.0) * (exp(5.0) - exp(3.0)))
-	function muleq(f, x, y, z)
-        x = default_constructor(ULogarithmic{Float64}, x)
-        y = default_constructor(ULogarithmic{Float64}, y)
-        z = default_constructor(ULogarithmic{Float64}, z)
+	function muleq(f, x::T, y, z) where T
+        x = default_constructor(ULogarithmic{T}, x)
+        y = default_constructor(ULogarithmic{T}, y)
+        z = default_constructor(ULogarithmic{T}, z)
 		x *= f(y, z)
 		x.log
 	end

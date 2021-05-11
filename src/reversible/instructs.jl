@@ -107,6 +107,7 @@ end
         for i=1:length(U.diag)
             state[x+locs_raw[i]] *= U.diag[i]
         end
+        x → configs[i]
     end
 end
 
@@ -115,8 +116,10 @@ _scache(u::AbstractMatrix{T}) where {T} = MVector{size(u,1)}(ones(T, size(u, 1))
 
 @i function loop_kernel(state::StridedVector{T}, configs, U::AbstractMatrix, locs_raw, REG_STACK) where {T<:Tropical}
     @invcheckoff begin
-        branch_keeper ← zeros(Bool, size(U, 2))
-		scache ← _scache(U)
+        @routine begin
+            branch_keeper ← zeros(Bool, size(U, 2))
+            scache ← _scache(U)
+        end
 		incstack!(REG_STACK)
         @inbounds for i=1:length(configs)
 			@routine begin
@@ -136,13 +139,14 @@ _scache(u::AbstractMatrix{T}) where {T} = MVector{size(u,1)}(ones(T, size(u, 1))
 				end
                 unsafe_store!(REG_STACK[x+locs_raw[l]], el)
 				~@routine
+				el → zero(T)
 			end
 			~@routine
         end
 		for i=1:length(state)
         	NiLang.SWAP(state[i], REG_STACK[i])
 		end
-        branch_keeper → zeros(Bool, size(U, 2))
+        ~@routine
     end
 end
 
@@ -160,11 +164,13 @@ end
 		end
 		incstack!(REG_STACK)
         @inbounds for i=1:length(configs)
-        	x ← configs[i]
-			is1 ← x + locs_raw[1]
-			is2 ← x + locs_raw[2]
-			s1 ← one(T)
-			s2 ← one(T)
+            @routine begin
+                x ← configs[i]
+                is1 ← x + locs_raw[1]
+                is2 ← x + locs_raw[2]
+                s1 ← one(T)
+                s2 ← one(T)
+            end
 			NiLang.SWAP(s1, state[is1])
 			NiLang.SWAP(s2, state[is2])
 			@routine begin
@@ -190,6 +196,7 @@ end
 			~@routine
         	NiLang.SWAP(s1, REG_STACK[is1])
         	NiLang.SWAP(s2, REG_STACK[is2])
+            ~@routine
     	end
 		~@routine
 	end

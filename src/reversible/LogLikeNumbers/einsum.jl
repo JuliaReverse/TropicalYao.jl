@@ -52,7 +52,7 @@ loop and accumulate products to y, the GPU version, the CPU version.
             pl ← ones(T, length(inner_ci))
             el ← zero(T)
             for ind_x in inner_ci
-                ind_xy ← CartesianIndex(TupleTools.vcat(ind_y.I, ind_x.I))
+                @routine ind_xy ← CartesianIndex(TupleTools.vcat(ind_y.I, ind_x.I))
                 #y[iy] += map_prod(T, xs, ind_xy, locs_xs)
                 for I=1:N
                     pl[ind_x] *= xs[I][index_map(ind_xy, locs_xs[I])]
@@ -61,6 +61,7 @@ loop and accumulate products to y, the GPU version, the CPU version.
                     FLIP(branch_keeper[ind_x])
                     NiLang.SWAP(el, pl[ind_x])
                 end
+                ~@routine
             end
         end
         y[iy] *= el

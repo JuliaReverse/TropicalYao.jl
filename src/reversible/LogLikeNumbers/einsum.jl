@@ -45,23 +45,25 @@ loop and accumulate products to y, the GPU version, the CPU version.
 """
 @i function i_loop!(locs_xs::NTuple{N}, xs::NTuple{N, AbstractArray}, locs_y, y::AbstractArray{T}, outer_ci::CartesianIndices, inner_ci::CartesianIndices) where {N, T<:Tropical}
     @invcheckoff @inbounds for i in outer_ci
-        ind_y ← outer_ci[i]
-        iy ← index_map(ind_y, locs_y)
-		branch_keeper ← zeros(Bool, length(inner_ci))
-		pl ← ones(T, length(inner_ci))
-		el ← zero(T)
-		@routine for ind_x in inner_ci
-            ind_xy ← CartesianIndex(TupleTools.vcat(ind_y.I, ind_x.I))
-            #y[iy] += map_prod(T, xs, ind_xy, locs_xs)
-            for I=1:N
-                pl[ind_x] *= xs[I][index_map(ind_xy, locs_xs[I])]
+		@routine begin
+            ind_y ← outer_ci[i]
+            iy ← index_map(ind_y, locs_y)
+            branch_keeper ← zeros(Bool, length(inner_ci))
+            pl ← ones(T, length(inner_ci))
+            el ← zero(T)
+            for ind_x in inner_ci
+                ind_xy ← CartesianIndex(TupleTools.vcat(ind_y.I, ind_x.I))
+                #y[iy] += map_prod(T, xs, ind_xy, locs_xs)
+                for I=1:N
+                    pl[ind_x] *= xs[I][index_map(ind_xy, locs_xs[I])]
+                end
+                if (el.n < pl[ind_x].n, branch_keeper[ind_x])
+                    FLIP(branch_keeper[ind_x])
+                    NiLang.SWAP(el, pl[ind_x])
+                end
             end
-			if (el.n < pl[ind_x].n, branch_keeper[ind_x])
-				FLIP(branch_keeper[ind_x])
-				NiLang.SWAP(el, pl[ind_x])
-			end
         end
-		y[iy] *= el
-		~@routine
+        y[iy] *= el
+        ~@routine
     end
 end

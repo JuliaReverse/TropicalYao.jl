@@ -14,6 +14,7 @@
 			end
 			@inbounds out![i,j] *= el
 			~@routine
+			el → zero(T)
 		end
 	end
 	@invcheckoff branch_keeper → zeros(Bool, size(x,2))
@@ -32,6 +33,7 @@ end
 		end
 		@inbounds out![i] *= el
 		~@routine
+		el → zero(T)
 	end
 end
 

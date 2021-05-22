@@ -7,7 +7,7 @@ function vertextensor(::Type{TT}, h) where TT
 end
 
 function copytensor(::Type{T}) where T
-    Diagonal([one(T), T(-999999), T(-999999), one(T)])
+    Diagonal([one(T), zero(T), zero(T), one(T)])
 end
 
 function resettensor(::Type{T}) where T
@@ -52,14 +52,14 @@ end
 
 copy state of qubit 2 -> 1.
 """
-function Gcp(::Type{TT}) where TT<:TropicalTypes
+function Gcp(::Type{TT}) where TT
     tropicalblock(copytensor(TT))
 end
 
-function Greset(::Type{TT}) where TT<:TropicalTypes
+function Greset(::Type{TT}) where TT
     tropicalblock([one(TT) one(TT); zero(TT) zero(TT)])
 end
 
-function Gcut(::Type{TT}) where TT<:TropicalTypes
+function Gcut(::Type{TT}) where TT
     tropicalblock([one(TT) one(TT); one(TT) one(TT)])
 end

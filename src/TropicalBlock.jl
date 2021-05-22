@@ -20,11 +20,11 @@ end
 
 TropicalMatrixBlock(m::AbstractMatrix) = TropicalMatrixBlock{Int(log2(size(m,1)))}(m)
 
-tropicalblock(m::AbstractMatrix{<:TropicalTypes}) = TropicalMatrixBlock(m)
+tropicalblock(m::AbstractMatrix) = TropicalMatrixBlock(m)
 
 YaoBlocks.mat(A::TropicalMatrixBlock) where T = A.mat
 
-function YaoBlocks.mat(::Type{T}, A::TropicalMatrixBlock) where {T<:TropicalTypes}
+function YaoBlocks.mat(::Type{T}, A::TropicalMatrixBlock) where T
     if eltype(A.mat) == T
         return A.mat
     else

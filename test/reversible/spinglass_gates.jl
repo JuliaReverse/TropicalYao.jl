@@ -37,7 +37,7 @@ end
     @test check_inv(apply_Gh!, (copy(reg), 2, 0.5, S))
     reg1, _, S = apply_Gcp!(copy(reg), (2, 4), S)
     reg2 = copy(reg) |> put(10, (2, 4)=>matblock(copytensor(Tropical{Float64})))
-    @test reg1 ≈ reg2
+    @test reg2.state ≈ map(x->x.n<-1000 ? Tropical(-Inf) : x, reg1.state)
     @test check_inv(apply_Gcp!, (copy(reg), (2, 4), S))
     reg1, _, S = apply_Greset!(copy(reg), 2, copy(S))
     reg2 = copy(reg) |> put(10, 2=>matblock(resettensor(Tropical{Float64})))

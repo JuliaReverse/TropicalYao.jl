@@ -153,7 +153,7 @@ Apply a copy gate (or CNOT).
 This instruct will increase the stack top of `REG_STACK` by 1.
 """
 @i function apply_Gcp!(reg::ArrayReg{1,T}, i::NTuple{2,Int}, REG_STACK) where T<:Tropical
-    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(copytensor(T)))
+    @routine @invcheckoff g ← put(nqubits(reg), i=>tropicalblock(Diagonal([one(T), T(-999999), T(-999999), one(T)])))
     apply!(reg, g, REG_STACK)
     ~@routine
 end

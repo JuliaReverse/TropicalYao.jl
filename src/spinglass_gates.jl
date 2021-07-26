@@ -29,9 +29,9 @@ end
 
 hypercubicI(ndim::Int, D::Int) = hypercubicI(Float64, ndim, D)
 
-Gh(vertex_tensor::Vector{T}) where T = tropicalblock(Diagonal(vertex_tensor) |> LuxurySparse.staticize)
-Gvb(bond_tensor::Matrix{T}) where T = tropicalblock(Diagonal([bond_tensor...]) |> LuxurySparse.staticize)
-Ghb(bond_tensor::Matrix{T}) where T = tropicalblock(transpose(bond_tensor) |> LuxurySparse.staticize)
+Gh(vertex_tensor::Vector{T}) where T = tropicalblock(Diagonal(vertex_tensor))
+Gvb(bond_tensor::Matrix{T}) where T = tropicalblock(Diagonal([bond_tensor...]))
+Ghb(bond_tensor::Matrix{T}) where T = tropicalblock(transpose(bond_tensor))
 function G16(::Type{TT}, Js) where TT<:TropicalTypes
     xs = map(x->_bondtensor(TT, x), Js)
     mat = zeros(TT, 2, 2, 2, 2, 2, 2, 2, 2)
@@ -40,7 +40,7 @@ function G16(::Type{TT}, Js) where TT<:TropicalTypes
         xs[5][b,α] * xs[6][b,β] * xs[7][b,γ] * xs[8][b,δ] * xs[9][c,α] * xs[10][c,β] *
         xs[11][c,γ] * xs[12][c,δ] * xs[13][d,α] * xs[14][d,β] * xs[15][d,γ] * xs[16][d,δ]
     end
-    tropicalblock(reshape(mat, 16, 16) |> LuxurySparse.staticize)
+    tropicalblock(reshape(mat, 16, 16))
 end
 
 function _bondtensor(::Type{TT}, J) where TT
